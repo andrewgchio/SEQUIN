@@ -38,7 +38,7 @@ include("network_properties/network-properties.jl")
 
 include("experiments/REP.jl")
 
-include("visualization/cache_network_properties.jl")
+# include("visualization/cache_network_properties.jl")
 
 const GRB_ENV = Gurobi.Env()
 

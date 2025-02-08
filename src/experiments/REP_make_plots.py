@@ -561,10 +561,10 @@ if __name__ == '__main__':
 
     setup_pandas()
 
-    # make_experiment0_plots(save=True, show=True, cache_dir=cache_dir)
+    make_experiment0_plots(save=True, show=True, cache_dir=cache_dir)
 
-    # make_experiment1_plots(save=True, show=True, cache_dir=cache_dir)
+    make_experiment1_plots(save=True, show=True, cache_dir=cache_dir)
 
-    # make_experiment2_plots(save=True, show=True, k=4, cache_dir=cache_dir)
-    # make_experiment2_plots(save=True, show=True, k=2, cache_dir=cache_dir)
+    make_experiment2_plots(save=True, show=True, k=4, cache_dir=cache_dir)
+    make_experiment2_plots(save=True, show=True, k=2, cache_dir=cache_dir)
     make_experiment2_plots(save=True, show=True, k=3, cache_dir=cache_dir)

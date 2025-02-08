@@ -36,7 +36,7 @@ include("inner/dc-ls.jl")
 # Network properties
 include("network_properties/network-properties.jl")
 
-include("visualization/cache_network_properties.jl")
+# include("visualization/cache_network_properties.jl")
 
 const GRB_ENV = Gurobi.Env()
 
@@ -122,7 +122,7 @@ function run(cliargs, files)
         return
     end
 
-    if cliargs["problem"] == "ours"
+    if cliargs["problem"] == "SEQUIN"
         results = run_approach(cliargs, mp_file)
         write_results(cliargs, results)
         println(results)
