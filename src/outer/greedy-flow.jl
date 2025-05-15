@@ -2,8 +2,9 @@
 
 """ run algorithm for greedy flow N-k """
 function run_greedy_flow(cliargs::Dict, mp_file::String)::PermutationResults
-    data, ref = init_models_data_ref(mp_file;
-                                    do_perturb_loads=cliargs["do_perturb_loads"])
+    data, ref = init_models_data_ref(
+        mp_file; 
+        do_perturb_loads=cliargs["do_perturb_loads"])
     return solve_greedy_flow(cliargs, data, ref)
 end
 
@@ -12,6 +13,7 @@ function solve_greedy_flow(cliargs::Dict, data::Dict, ref::Dict)
     # Cache the generator setpoints and loads at equilibrium
     setpoints = Dict(i => gen["pg"] for (i, gen) in ref[:gen])
     loads = Dict(i => load["pd"] for (i, load) in ref[:load])
+    pf = Dict(i => br["pf"] for (i,br) in ref[:branch])
 
     # This is only possible since we cache values in put_system_at_equilibrium
     pf = Dict(i => br["pf"] for (i, br) in ref[:branch])
@@ -22,9 +24,10 @@ function solve_greedy_flow(cliargs::Dict, data::Dict, ref::Dict)
     # Reset the setpoints, loads
     setpoints = Dict(i => gen["pg"] for (i, gen) in ref[:gen])
     loads = Dict(i => load["pd"] for (i, load) in ref[:load])
+    pf = Dict(i => br["pf"] for (i,br) in ref[:branch])
 
     permutation = []
-    it_data = IterData([], loads, Dict(), setpoints, Dict(), Solution())
+    it_data = IterData(loads, setpoints, pf)
 
     for i in 1:cliargs["line_budget"]
         iter_lines = i == 1 ? [p0] : get_next_pf(data, ref, it_data, 

@@ -36,7 +36,11 @@ include("inner/dc-ls.jl")
 # Network properties
 include("network_properties/network-properties.jl")
 
-# include("visualization/cache_network_properties.jl")
+# Experiments
+# include("experiments/experiment0.jl")
+# include("experiments/experiment1.jl")
+# include("experiments/experiment2.jl")
+# include("experiments/experiment3.jl")
 
 const GRB_ENV = Gurobi.Env()
 
@@ -143,6 +147,26 @@ function run(cliargs, files)
         cache_network_properties(cliargs, mp_file)
         return
     end
+
+    # if cliargs["problem"] == "cache_experiment0"
+    #     cache_experiment0(cliargs, mp_file)
+    #     return
+    # end
+
+    # if cliargs["problem"] == "cache_experiment1"
+    #     cache_experiment1(cliargs, mp_file)
+    #     return
+    # end
+
+    # if cliargs["problem"] == "cache_experiment2"
+    #     cache_experiment2(cliargs, mp_file)
+    #     return
+    # end
+
+    # if cliargs["problem"] == "cache_experiment3"
+    #     cache_experiment3(cliargs, mp_file)
+    #     return
+    # end
 
     throw("Problem $(cliargs["problem"]) is not defined")
 

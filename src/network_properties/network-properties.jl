@@ -169,10 +169,6 @@ function generator_criticality(ref, pg, percent_change)
     return gen_crit
 end
 
-function influence_radius()
-    println("TODO: implement influence radius")
-end
-
 # A sort of "main" function with which to test whether implementations of 
 # the network properties works...
 function test_network_properties(cliargs, mp_file)
@@ -206,14 +202,5 @@ function test_network_properties(cliargs, mp_file)
     )
     println(criticality(ref, cut_info.p, cut_info.pg, cliargs["generator_ramping_bounds"]))
 
-    # Testing influence radius
-    println("Testing influence radius")
-
-
     println("Done tests")
 end
-
-"""
-julia --project=. src/main.jl --rerun --use_separate_budgets --case pglib_opf_case14_ieee.m --problem traditional -l 2 -k 2
-
-"""

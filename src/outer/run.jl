@@ -64,7 +64,6 @@ function solve_deterministic(cliargs::Dict, data::Dict, ref::Dict)::Results
         current_gens = filter!(z -> last(z) > TOL,
                            current_x_gen) |> keys |> collect
         cut_info = get_inner_solution(data, ref, current_gens, current_lines; solver=cliargs["inner_solver"])
-        println(cut_info)
         woods_cut = @build_constraint(
             eta <= round(cut_info.load_shed; digits=4) + # EDIT
                    sum([cut_info.pg[i] * x_gen[i] for i in keys(cut_info.pg)]) +

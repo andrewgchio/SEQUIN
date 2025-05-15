@@ -36,6 +36,7 @@ include("inner/dc-ls.jl")
 # Network properties
 include("network_properties/network-properties.jl")
 
+# Used to execute the REP
 include("experiments/REP.jl")
 
 # include("visualization/cache_network_properties.jl")

@@ -1,9 +1,12 @@
 # greedy-criticality.jl
 
 """ run algorithm for greedy criticality N-k """
-function run_greedy_criticality(cliargs::Dict, mp_file::String)::PermutationResults
-    data, ref = init_models_data_ref(mp_file;
-                                    do_perturb_loads=cliargs["do_perturb_loads"])
+function run_greedy_criticality(
+        cliargs::Dict, 
+        mp_file::String)::PermutationResults
+    data, ref = init_models_data_ref(
+        mp_file; 
+        do_perturb_loads=cliargs["do_perturb_loads"])
     return solve_greedy_criticality(cliargs, data, ref)
 end
 
@@ -12,8 +15,9 @@ function solve_greedy_criticality(cliargs::Dict, data::Dict, ref::Dict)
     # Cache the generator setpoints and loads at equilibrium
     setpoints = Dict(i => gen["pg"] for (i, gen) in ref[:gen])
     loads = Dict(i => load["pd"] for (i, load) in ref[:load])
+    pf = Dict(i => br["pf"] for (i,br) in ref[:branch])
 
-    init_it_data = IterData([], loads, Dict(), setpoints, Dict(), Solution())
+    init_it_data = IterData(loads, setpoints, pf)
     p0 = get_top_criticality(data, ref, init_it_data, cliargs["inner_solver"];
                 percent_change=cliargs["generator_ramping_bounds"])[1]
     
@@ -22,9 +26,10 @@ function solve_greedy_criticality(cliargs::Dict, data::Dict, ref::Dict)
     # Reset the setpoints, loads
     setpoints = Dict(i => gen["pg"] for (i, gen) in ref[:gen])
     loads = Dict(i => load["pd"] for (i, load) in ref[:load])
+    pf = Dict(i => br["pf"] for (i,br) in ref[:branch])
 
     permutation = [[p0]]
-    it_data = IterData([p0], loads, Dict(), setpoints, Dict(), Solution())
+    it_data = IterData([p0],loads, Dict(),setpoints, Dict(),pf,pf,Solution())
 
     for _ in 2:cliargs["line_budget"]
         iter_lines = get_top_criticality(data, ref, it_data, 
@@ -48,8 +53,9 @@ function solve_greedy_criticality(cliargs::Dict, data::Dict, ref::Dict)
     return pack_permutation_solution(solutions)
 end
 
-""" return the next component to cut (the line with the impact on criticality)"""
-function get_top_criticality(data, ref, it_data, solver; n=1, percent_change=0.1)
+""" return next component to cut (the line with the impact on criticality)"""
+function get_top_criticality(data, ref, it_data, solver; 
+        n=1, percent_change=0.1)
     crits = Dict()
 
     for (i,br) in ref[:branch]

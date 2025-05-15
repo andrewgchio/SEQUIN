@@ -2,8 +2,9 @@
 
 """ run algorithm for our N-k """
 function run_approach(cliargs::Dict, mp_file::String)::PermutationResults
-    data, ref = init_models_data_ref(mp_file;
-                                    do_perturb_loads=cliargs["do_perturb_loads"])
+    data, ref = init_models_data_ref(
+        mp_file; 
+        do_perturb_loads=cliargs["do_perturb_loads"])
     return solve_approach(cliargs, data, ref)
 end
 
@@ -12,8 +13,9 @@ function solve_approach(cliargs::Dict, data::Dict, ref::Dict)
     # Cache the generator setpoints and loads at equilibrium
     setpoints = Dict(i => gen["pg"] for (i, gen) in ref[:gen])
     loads = Dict(i => load["pd"] for (i, load) in ref[:load])
+    pf = Dict(i => br["pf"] for (i,br) in ref[:branch])
 
-    init_it_data = IterData([], loads, Dict(), setpoints, Dict(), Solution())
+    init_it_data = IterData(loads, setpoints, pf)
 
     # This is only possible since we cache values in put_system_at_equilibrium
     pfs = get_top_pfs(data, ref, init_it_data, cliargs["inner_solver"];
@@ -36,9 +38,10 @@ function solve_approach(cliargs::Dict, data::Dict, ref::Dict)
         # Reset the setpoints, loads
         setpoints = Dict(i => gen["pg"] for (i, gen) in ref[:gen])
         loads = Dict(i => load["pd"] for (i, load) in ref[:load])
+        pf = Dict(i => br["pf"] for (i,br) in ref[:branch])
 
         permutation = []
-        it_data = IterData([], loads, Dict(), setpoints, Dict(), Solution())
+        it_data = IterData(loads, setpoints, pf)
 
         branches = nothing
 
@@ -85,7 +88,9 @@ function solve_approach(cliargs::Dict, data::Dict, ref::Dict)
     return pack_permutation_solution(solutions)
 end
 
-function get_top_pfs(data, ref, it_data, solver; init=false, n=1, percent_change=0.1)
+function get_top_pfs(data, ref, it_data, solver; 
+        init=false, n=1, percent_change=0.1)
+
     if init
         pf = Dict(i => abs(br["pf"]) for (i, br) in ref[:branch])
     else
@@ -100,7 +105,8 @@ function get_top_pfs(data, ref, it_data, solver; init=false, n=1, percent_change
 end
 
 """ return the next component to cut (the line with the most impact)"""
-function get_top_impacts(data, ref, it_data, solver; branches=nothing, n=1, percent_change=0.1)
+function get_top_impacts(data, ref, it_data, solver; 
+        branches=nothing, n=1, percent_change=0.1)
     impacts = Dict()
 
     println("Branches = $(branches)")
@@ -122,7 +128,9 @@ function get_top_impacts(data, ref, it_data, solver; branches=nothing, n=1, perc
 end
 
 """ return the component that would push the criticality up the most """
-function get_top_criticality(data, ref, it_data, solver; n=1, percent_change=0.1)
+function get_top_criticality(data, ref, it_data, solver; 
+        n=1, percent_change=0.1)
+
     crits = Dict()
 
     for (i,br) in ref[:branch]

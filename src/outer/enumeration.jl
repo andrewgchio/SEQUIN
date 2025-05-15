@@ -1,9 +1,12 @@
 # enumeration.jl 
+# 
+# Contains the functions needed to do the N-k interdiction through enumeration
 
 """ run algorithm for enumeration N-k """
 function run_enumeration(cliargs::Dict, mp_file::String)::PermutationResults
-    data, ref = init_models_data_ref(mp_file;
-                                    do_perturb_loads=cliargs["do_perturb_loads"])
+    data, ref = init_models_data_ref(
+        mp_file; 
+        do_perturb_loads=cliargs["do_perturb_loads"])
     return solve_enumeration(cliargs, data, ref)
 end
 
@@ -12,6 +15,7 @@ function solve_enumeration(cliargs::Dict, data::Dict, ref::Dict)
     # Cache the generator setpoints and loads at equilibrium
     setpoints = Dict(i => gen["pg"] for (i, gen) in ref[:gen])
     loads = Dict(i => load["pd"] for (i, load) in ref[:load])
+    pf = Dict(i => br["pf"] for (i, br) in ref[:branch])
 
     solutions = Dict()
 
@@ -21,7 +25,7 @@ function solve_enumeration(cliargs::Dict, data::Dict, ref::Dict)
 
         for porder in permutations(lines)
             permutation = []
-            it_data = IterData([], loads, Dict(), setpoints, Dict(), Solution())
+            it_data = IterData(loads, setpoints, pf)
 
             for iter_lines in take_n_items(porder, cliargs["iterline_budget"])
                 push!(permutation, iter_lines)
@@ -31,8 +35,10 @@ function solve_enumeration(cliargs::Dict, data::Dict, ref::Dict)
                 try
                     solve_partial_interdiction(cliargs, data, ref, it_data)
                 catch e
-                    println("Some error occurred")
-                    # There is some ordering that causes some type of error
+                    # Some ordering that caused an error
+                    println("Error occurred", e)
+                    println("Press enter to continue...")
+                    readline()
                     continue
                 end
             end

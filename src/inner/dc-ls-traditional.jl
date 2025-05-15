@@ -12,8 +12,8 @@ function get_traditional_inner_solution(data, ref,
         (pm) -> my_build_mld(pm, setpoints; percent_change=percent_change))
     result = optimize_model!(pm, optimizer=lp_optimizer)
 
-    load_served = sum(load["pd"] for (_, load) in result["solution"]["load"])
-    load_shed = data["total_load"] - load_served
+    pd = Dict(i => load["pd"] for (i, load) in result["solution"]["load"])
+    load_shed = data["total_load"] - sum(values(pd))
 
     pg = Dict(i => result["solution"]["gen"][string(i)]["pg"]
               for i in keys(ref[:gen])
@@ -26,5 +26,16 @@ function get_traditional_inner_solution(data, ref,
              for i in keys(ref[:branch])
              if haskey(result["solution"]["branch"], string(i))
     )
-    return (load_shed=load_shed, pg=pg, p=p)
+    return (
+        load_shed=load_shed, 
+        all_loads=pd, 
+        pg=pg, 
+        p=p)
 end
+
+# Mainly for the SEQUIN GUI tool to access this function
+get_traditional_inner_solution_PY(
+    data,ref,lines::String,setpoints, percent_change, solver) = 
+    get_traditional_inner_solution(
+        data,ref,[],split(lines,","),setpoints; 
+        percent_change=percent_change, solver=solver)

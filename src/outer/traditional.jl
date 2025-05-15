@@ -7,8 +7,9 @@
 
 """ run algorithm for traditional N-k """
 function run_traditional(cliargs::Dict, mp_file::String)::Results
-    data, ref = init_models_data_ref(mp_file; 
-                    do_perturb_loads=cliargs["do_perturb_loads"])
+    data, ref = init_models_data_ref(
+        mp_file; 
+        do_perturb_loads=cliargs["do_perturb_loads"])
     return solve_traditional(cliargs, data, ref)
 end
 
@@ -54,7 +55,7 @@ function pack_solution(model, data, ref, setpoints, cliargs)
     objective_value = recompute_objective_value(data, ref,
         curr_lines, curr_gens, setpoints, cliargs)
 
-    incumbent = Solution(curr_lines, curr_gens, objective_value, Dict())
+    incumbent= Solution(curr_lines, curr_gens, objective_value, Dict())
 
     return Results(
         iterations, objective_value, bound, run_time, rel_gap, incumbent
@@ -78,8 +79,10 @@ function cb_traditional_inner_problem(cb_data, model, data, ref, setpoints,
     # println("Looking at line = $(curr_lines), with load shed = $(cut_info.load_shed)")
 
     woods_cut = @build_constraint(
-        model[:eta] <= round(cut_info.load_shed; digits=4) +
-                       sum([cut_info.pg[i] * x_gen[i] for i in keys(cut_info.pg)]) +
-                       sum([cut_info.p[i] * x_line[i] for i in keys(cut_info.p)]))
+        model[:eta] 
+        <= 
+        round(cut_info.load_shed; digits=4) +
+        sum([cut_info.pg[i] * x_gen[i] for i in keys(cut_info.pg)]) +
+        sum([cut_info.p[i] * x_line[i] for i in keys(cut_info.p)]))
     MOI.submit(model, MOI.LazyConstraint(cb_data), woods_cut)
 end

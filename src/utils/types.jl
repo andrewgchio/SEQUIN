@@ -103,6 +103,10 @@ mutable struct IterData
     next_loads::Dict
     prev_gen_setpoints::Dict
     next_gen_setpoints::Dict
+    prev_br_pf::Dict
+    next_br_pf::Dict
     solution::Solution
 end
 
+IterData(loads, setpoints, pf) = 
+    IterData([], loads, Dict(), setpoints, Dict(), pf, pf, Solution())

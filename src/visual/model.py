@@ -355,6 +355,7 @@ class Model(Singleton):
     
     def get_power_flow(self, step, atk_mode=None):
         atk_mode = atk_mode or self.atk_mode
+        step = int(step)
         if atk_mode == Model.SEQUENTIAL_ATK_MODE:
             br_pf = {i : abs(x) for i,x in self.it_data[step].prev_br_pf.items()}
             all_pfs = {abs(x) for data in self.it_data for x in data.prev_br_pf.values()}

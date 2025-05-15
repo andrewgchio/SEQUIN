@@ -64,7 +64,7 @@ end
 function attributes_outer_model(model, cliargs)
     # set_attribute(model, "LogToConsole", 0)
     set_attribute(model, "TimeLimit", cliargs["timeout"])
-    MOI.set(model, MOI.RelativeGapTolerance(), cliargs["optimality_gap"] / 100.0)
+    MOI.set(model, MOI.RelativeGapTolerance(), cliargs["optimality_gap"]/100.0)
 
     # Increase Number of threads used
     # MOI.set(model, MOI.NumberOfThreads(), 32)
@@ -133,7 +133,8 @@ end
 
 function recompute_objective_value(data, ref, lines, gens, setpoints, cliargs)
     cut_info = get_traditional_inner_solution(data, ref, gens, lines, setpoints;
-        percent_change=cliargs["generator_ramping_bounds"], solver=cliargs["inner_solver"])
+        percent_change=cliargs["generator_ramping_bounds"], 
+        solver=cliargs["inner_solver"])
     return cut_info.load_shed +
            sum([cut_info.pg[i] for i in keys(cut_info.pg) if in(i, gens)]) +
            sum([cut_info.p[i] for i in keys(cut_info.p) if in(i, lines)])

@@ -88,7 +88,8 @@ function my_constraint_max_loadability(pm::AbstractPowerModel, max_load::Float64
             (
                 time_elapsed[n] * (
                     sum(z_shunt[n][i] for (i, shunt) in ref(pm, n, :shunt)) +
-                    sum(load_weight[n][i] * abs(load["pd"]) * z_demand[n][i] for (i, load) in ref(pm, n, :load))
+                    sum(load_weight[n][i] * abs(load["pd"]) * z_demand[n][i] 
+                        for (i, load) in ref(pm, n, :load))
                 )
             )
             for n in nws)

@@ -208,7 +208,7 @@ class Controller(Singleton):
     def apply_bus_property(self, property=None, unit=None, step=None):
         property = property or View().get_sidebar().node_property_menu.get()
         unit = unit or View().get_sidebar().node_property_unit.get()
-        step = step or View().get_sidebar().slider.get()
+        step = int(step or View().get_sidebar().slider.get())
 
         if property == 'None':
             View().get_canvas().reset_node_styles()
@@ -265,7 +265,7 @@ class Controller(Singleton):
     def apply_branch_property(self, property=None, unit=None, step=None):
         property = property or View().get_sidebar().edge_property_menu.get()
         unit = unit or View().get_sidebar().edge_property_unit.get()
-        step = step or View().get_sidebar().slider.get()
+        step = int(step or View().get_sidebar().slider.get())
 
         if property == 'None':
             # All styles should be set to 0

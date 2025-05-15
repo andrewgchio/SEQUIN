@@ -2,8 +2,9 @@
 
 """ run algorithm for greedy impact N-k """
 function run_greedy_impact(cliargs::Dict, mp_file::String)::PermutationResults
-    data, ref = init_models_data_ref(mp_file;
-                                    do_perturb_loads=cliargs["do_perturb_loads"])
+    data, ref = init_models_data_ref(
+        mp_file; 
+        do_perturb_loads=cliargs["do_perturb_loads"])
     return solve_greedy_impact(cliargs, data, ref)
 end
 
@@ -12,8 +13,9 @@ function solve_greedy_impact(cliargs::Dict, data::Dict, ref::Dict)
     # Cache the generator setpoints and loads at equilibrium
     setpoints = Dict(i => gen["pg"] for (i, gen) in ref[:gen])
     loads = Dict(i => load["pd"] for (i, load) in ref[:load])
+    pf = Dict(i => br["pf"] for (i,br) in ref[:branch])
 
-    init_it_data = IterData([], loads, Dict(), setpoints, Dict(), Solution())
+    init_it_data = IterData(loads, setpoints, pf)
     p0 = get_top_impacts(data, ref, init_it_data, cliargs["inner_solver"];
                 percent_change=cliargs["generator_ramping_bounds"])[1]
     
@@ -22,9 +24,10 @@ function solve_greedy_impact(cliargs::Dict, data::Dict, ref::Dict)
     # Reset the setpoints, loads
     setpoints = Dict(i => gen["pg"] for (i, gen) in ref[:gen])
     loads = Dict(i => load["pd"] for (i, load) in ref[:load])
+    pf = Dict(i => br["pf"] for (i,br) in ref[:branch])
 
     permutation = []
-    it_data = IterData([], loads, Dict(), setpoints, Dict(), Solution())
+    it_data = IterData(loads, setpoints, pf)
 
     for i in 1:cliargs["line_budget"]
         iter_lines = i == 1 ? [p0] : get_top_impacts(data, ref, it_data, 

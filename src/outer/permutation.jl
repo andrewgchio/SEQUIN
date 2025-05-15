@@ -2,8 +2,9 @@
 
 """ run algorithm for permutation N-k """
 function run_permutation(cliargs::Dict, mp_file::String)::PermutationResults
-    data, ref = init_models_data_ref(mp_file; 
-                    do_perturb_loads=cliargs["do_perturb_loads"])
+    data, ref = init_models_data_ref(
+        mp_file; 
+        do_perturb_loads=cliargs["do_perturb_loads"])
     return solve_permutation(cliargs, data, ref)
 end
 
@@ -12,6 +13,7 @@ function solve_permutation(cliargs::Dict, data::Dict, ref::Dict)
     # Cache the generator setpoints and loads at equilibrium
     setpoints = Dict(i => gen["pg"] for (i, gen) in ref[:gen])
     loads = Dict(i => load["pd"] for (i, load) in ref[:load])
+    pf = Dict(i => br["pf"] for (i,br) in ref[:branch])
 
     # Heuristic: solve the regular N-k problem to find the k lines to cut
     nk_solution = solve_traditional(cliargs, data, ref)
@@ -20,7 +22,7 @@ function solve_permutation(cliargs::Dict, data::Dict, ref::Dict)
     solutions = Dict()
     for porder in permutations(lines)
         permutation = []
-        it_data = IterData([], loads, Dict(), setpoints, Dict(), Solution())
+        it_data = IterData(loads, setpoints, pf)
 
         for iter_lines in take_n_items(porder, cliargs["iterline_budget"])
             push!(permutation, iter_lines)
@@ -93,6 +95,7 @@ function solve_partial_interdiction(cliargs::Dict, data::Dict, ref::Dict,
     # Get the latest pg and load shed after optimization (and save it in prev)
     it_data.prev_gen_setpoints = it_data.next_gen_setpoints
     it_data.prev_loads = it_data.next_loads
+    it_data.prev_br_pf = it_data.next_br_pf
 
     curr_lines = collect_values(model[:x_line], keys(ref[:branch]))
     curr_gens = collect_values(model[:x_gen], keys(ref[:gen]))
@@ -121,80 +124,14 @@ function cb_permutation_inner_problem(cb_data, model, data, ref, it_data,
     # Cache next gen setpoints, loads 
     it_data.next_gen_setpoints = cut_info.pg
     it_data.next_loads = cut_info.loads
+    it_data.next_br_pf = cut_info.p
 
     woods_cut = @build_constraint(
-        model[:eta] <= round(cut_info.load_shed; digits=4) +
-                    #    sum([cut_info.pg[i] * x_gen[i] for i in keys(cut_info.pg)]) +
-                       sum([cut_info.p[i] * x_line[i] for i in keys(cut_info.p)]))
+        model[:eta] 
+        <= 
+        round(cut_info.load_shed; digits=4) +
+        # sum([cut_info.pg[i] * x_gen[i] for i in keys(cut_info.pg)]) +
+        sum([cut_info.p[i] * x_line[i] for i in keys(cut_info.p)]))
+
     MOI.submit(model, MOI.LazyConstraint(cb_data), woods_cut)
 end
-
-
-"""
-Extras
-
-    if cliargs["log"] !== nothing
-        buffer = IOBuffer()
-        print(buffer, "k,percent_change,load_shed,porder,curr_porder,gen_power,branch_power\n")
-
-        fig = powerplot(deepcopy(data); 
-                gen_data="pg", gen_data_type="quantitative",
-                # load_data="pd", load_data_type="quantitative",
-                branch_data="b_fr", branch_data_type="quantitative",
-                bus_size=20, gen_size=10, load_size=10, branch_size=1,
-                width=600, height=600)
-        fname_fig = "./output/figures/iterations/" * cliargs["case"][1:end-2] * "_fig-orig.png"
-        fig |> save(fname_fig)
-        prev_pg = Dict(i => gen["pg"] for (i,gen) in ref[:gen])
-        # prev_ld = Dict(i => load["pd"] for (i,load) in ref[:load])
-        # prev_pf = Dict(i => br["b_fr"] for (i,br) in ref[:branch])
-    end
-
-
-if cliargs["log"] !== nothing
-    init_data = deepcopy(data)
-    for i in keys(ref[:gen]); init_data["gen"][string(i)]["pg"] -= prev_pg[i] end
-    # for i in keys(ref[:load]); init_data["load"][string(i)]["pd"] -= prev_ld[i] end
-    # for i in keys(ref[:branch]); init_data["branch"][string(i)]["b_fr"] -= prev_pf[i] end
-    fig = powerplot(init_data; 
-            gen_data="pg", gen_data_type="quantitative",
-            # load_data="pd", load_data_type="quantitative",
-            branch_data="b_fr", branch_data_type="quantitative",
-            bus_size=20, gen_size=10, load_size=10, branch_size=1,
-            width=600, height=600)
-    fname_fig = "./output/figures/iterations/" * cliargs["case"][1:end-2] * "_fig-init.png"
-    fig |> save(fname_fig)
-end
-
-
-
-            if cliargs["log"] !== nothing
-                k = cliargs["budget"]
-                percent_change = cliargs["generator_ramping_bounds"]
-                load_shed = it_data.prev_loads
-                porder_str = join(porder, ";")
-                curr_porder_str = join(it_data.lines, ";")
-                branch_power = ""
-
-                iter_fig_data = deepcopy(data)
-                for i in keys(ref[:gen]); iter_fig_data["gen"][string(i)]["pg"] -= it_data.prev_gen_setpoints[i] end
-                # for i in keys(ref[:load]); iter_fig_data["load"][string(i)]["pd"] -= prev_ld[i] end
-                # for i in keys(ref[:branch]); iter_fig_data["branch"][string(i)]["b_fr"] -= prev_pf[i] end
-                fig = powerplot(iter_fig_data; 
-                        gen_data="pg", gen_data_type="quantitative",
-                        load_data="pd", load_data_type="quantitative",
-                        branch_data="b_fr", branch_data_type="quantitative",
-                        bus_size=20, gen_size=10, load_size=10, branch_size=1,
-                        width=600, height=600)
-                fig |> save(fname_fig)
-            end
-
-    if cliargs["log"] !== nothing
-        flog = cliargs["output_path"] * "log/" * first(split(cliargs["case"],".")) * "_" * cliargs["log"]
-        open(flog, "w") do f
-            write(f, String(take!(buffer)))
-        end
-    end
-
-"""
-
