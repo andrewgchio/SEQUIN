@@ -1,5 +1,5 @@
 {
-    "julia": "1.9.2",
+    "julia": "1.11",
     "packages": {
         "Revise" : {"uuid" : "295af30f-e4ad-537b-8983-00126c2a3abe", "version" : "3.7.2"},
         "ArgParse" :{"uuid" : "c7e460c6-2fb9-53a9-8c5b-16f535851c63", "version" : "1.2.0"},
