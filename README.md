@@ -171,7 +171,7 @@ This displays plots showing the impact of each failure in sequence on the networ
 
 * `Show load shed plot`: Plots the total load shed in the grid as the failures occur
 * `Show load serviced plot`: Plots the total load that was served to consumers as the failures occur
- `Show generator criticality plot`: Plots the *generator criticality* metric as the failures occur
+* `Show generator criticality plot`: Plots the *generator criticality* metric as the failures occur
 * `Show branch criticality plot`: Plots the *branch criticality* metric as the failures occur
 * `Show total power flow plot`: Plots the total power flow in the grid as the failures occur
 
